@@ -21,6 +21,10 @@ class MainFrame : public wxFrame {
 
 		wxStatusBar* m_mainStatusBar;
 
+		wxBoxSizer* m_sizer;
+		wxPanel* m_panelDisplay;
+		wxPanel* m_panelButtons;
+
 	private:
 		void OnClearDisplay(wxCommandEvent& event);
 		void OnExit(wxCommandEvent& event);
@@ -38,8 +42,8 @@ enum {
 	ID_Clear = 1
 };
 
-MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "Calculator") {
-	this->SetSizeHints(225, 325, 225, 325);
+MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "Calculator", wxDefaultPosition, wxDefaultSize, 
+	wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN) {
 
 	m_mainMenuBar = new wxMenuBar(0);
 	m_menuEdit = new wxMenu();
@@ -55,6 +59,18 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "Calculator") {
 	m_mainMenuBar->Append(m_menuHelp, "Help");
 
 	this->SetMenuBar(m_mainMenuBar);
+	
+	m_panelDisplay = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(198, 45));
+	m_panelDisplay->SetBackgroundColour(wxColour(229, 239, 242));
+
+	m_panelButtons = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(198, 195));
+	m_panelButtons->SetBackgroundColour(wxColour(229, 239, 242));
+
+	m_sizer = new wxBoxSizer(wxVERTICAL);
+	m_sizer->Add(m_panelDisplay, 0, wxALL, 10);
+	m_sizer->Add(m_panelButtons, 0, wxBOTTOM | wxRIGHT | wxLEFT, 10);
+	
+	this->SetSizerAndFit(m_sizer);
 
 	this->Centre(wxBOTH);
 
