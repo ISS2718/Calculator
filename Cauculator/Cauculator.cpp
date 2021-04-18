@@ -25,6 +25,22 @@ class MainFrame : public wxFrame {
 		wxPanel* m_panelDisplay;
 		wxPanel* m_panelButtons;
 
+		wxButton* m_backspaceButton;
+		wxButton* m_clearentryButton;
+		wxButton* m_clearButton;
+		wxButton* m_plusorminusButton;
+		wxButton* m_squareButton;
+		wxButton* m_divideButton;
+		wxButton* m_modorpercentButton; // modulus or percentage
+		wxButton* m_mutiplyButton;
+		wxButton* m_reciprocalButton; // inverse
+		wxButton* m_plussButton;
+		wxButton* m_minusButton;
+		wxButton* m_equalButton; // result
+		wxButton* m_comaButton;
+		wxButton* m_numbers[9];
+	
+
 	private:
 		void OnClearDisplay(wxCommandEvent& event);
 		void OnExit(wxCommandEvent& event);
