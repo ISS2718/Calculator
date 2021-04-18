@@ -1,4 +1,4 @@
-#include <wx/wxprec.h>
+﻿#include <wx/wxprec.h>
 #include <string.h>
 #ifdef WX_PRECOMP
 	#include <wx/wx.h>
@@ -34,11 +34,11 @@ class MainFrame : public wxFrame {
 		wxButton* m_modorpercentButton; // modulus or percentage
 		wxButton* m_mutiplyButton;
 		wxButton* m_reciprocalButton; // inverse
-		wxButton* m_plussButton;
 		wxButton* m_minusButton;
+		wxButton* m_plusButton;
 		wxButton* m_equalButton; // result
 		wxButton* m_comaButton;
-		wxButton* m_numbers[9];
+		wxButton* m_numbersButtons[10];
 	
 
 	private:
@@ -59,7 +59,7 @@ enum {
 };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "Calculator", wxDefaultPosition, wxDefaultSize, 
-	wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxCLIP_CHILDREN) {
+	wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX | wxMINIMIZE_BOX | wxCLIP_CHILDREN) {
 
 	m_mainMenuBar = new wxMenuBar(0);
 	m_menuEdit = new wxMenu();
@@ -81,6 +81,37 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "Calculator", wxDefaultPosition
 
 	m_panelButtons = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(198, 195));
 	m_panelButtons->SetBackgroundColour(wxColour(229, 239, 242));
+
+	const int initX = 3, initY = 5;
+	//---Create All Buttons
+	m_backspaceButton = new wxButton(m_panelButtons, wxID_ANY, wxString("<-"), wxPoint(initX, initY), wxSize(34, 29), 0);
+	m_clearentryButton = new wxButton(m_panelButtons, wxID_ANY, wxString("CE"), wxPoint(initX + 39, initY), wxSize(34, 29), 0);
+	m_clearButton = new wxButton(m_panelButtons, wxID_ANY, wxString("C"), wxPoint(initX + 78, initY), wxSize(34, 29), 0);
+	m_plusorminusButton = new wxButton(m_panelButtons, wxID_ANY, wxString("±"), wxPoint(initX + 117, initY), wxSize(34, 29), 0);
+	m_squareButton = new wxButton(m_panelButtons, wxID_ANY, wxString("V"), wxPoint(initX + 156, initY), wxSize(34, 29), 0);
+	
+	m_numbersButtons[7] = new wxButton(m_panelButtons, wxID_ANY, wxString("7"), wxPoint(initX , initY + 34), wxSize(34, 29), 0);
+	m_numbersButtons[8] = new wxButton(m_panelButtons, wxID_ANY, wxString("8"), wxPoint(initX + 39, initY + 34), wxSize(34, 29), 0);
+	m_numbersButtons[9] = new wxButton(m_panelButtons, wxID_ANY, wxString("9"), wxPoint(initX + 78, initY + 35), wxSize(34, 29), 0);
+	m_divideButton = new wxButton(m_panelButtons, wxID_ANY, wxString("/"), wxPoint(initX + 117, initY + 34), wxSize(34, 29), 0);
+	m_modorpercentButton = new wxButton(m_panelButtons, wxID_ANY, wxString("%"), wxPoint(initX + 156, initY + 34), wxSize(34, 29), 0);
+
+	m_numbersButtons[4] = new wxButton(m_panelButtons, wxID_ANY, wxString("4"), wxPoint(initX, initY + 68), wxSize(34, 29), 0);
+	m_numbersButtons[5] = new wxButton(m_panelButtons, wxID_ANY, wxString("5"), wxPoint(initX + 39, initY + 68), wxSize(34, 29), 0);
+	m_numbersButtons[6] = new wxButton(m_panelButtons, wxID_ANY, wxString("6"), wxPoint(initX + 78, initY + 68), wxSize(34, 29), 0);
+	m_mutiplyButton = new wxButton(m_panelButtons, wxID_ANY, wxString("*"), wxPoint(initX + 117, initY + 68), wxSize(34, 29), 0);
+	m_reciprocalButton = new wxButton(m_panelButtons, wxID_ANY, wxString("1/x"), wxPoint(initX + 156, initY + 68), wxSize(34, 29), 0);
+
+	m_numbersButtons[1] = new wxButton(m_panelButtons, wxID_ANY, wxString("1"), wxPoint(initX, initY + 102), wxSize(34, 29), 0);
+	m_numbersButtons[2] = new wxButton(m_panelButtons, wxID_ANY, wxString("2"), wxPoint(initX + 39, initY + 102), wxSize(34, 29), 0);
+	m_numbersButtons[3] = new wxButton(m_panelButtons, wxID_ANY, wxString("3"), wxPoint(initX + 78, initY + 102), wxSize(34, 29), 0);
+	m_minusButton = new wxButton(m_panelButtons, wxID_ANY, wxString("-"), wxPoint(initX + 117, initY + 102), wxSize(34, 29), 0);
+	m_equalButton = new wxButton(m_panelButtons, wxID_ANY, wxString("="), wxPoint(initX + 156, initY + 102), wxSize(34, 63), 0);
+
+	m_numbersButtons[0] = new wxButton(m_panelButtons, wxID_ANY, wxString("0"), wxPoint(initX, initY + 136), wxSize(73, 29), 0);
+	m_comaButton = new wxButton(m_panelButtons, wxID_ANY, wxString("."), wxPoint(initX + 78, initY + 136), wxSize(34, 29), 0);
+	m_plusButton = new wxButton(m_panelButtons, wxID_ANY, wxString("+"), wxPoint(initX + 117, initY + 136), wxSize(34, 29), 0);
+	//---
 
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_sizer->Add(m_panelDisplay, 0, wxALL, 10);
