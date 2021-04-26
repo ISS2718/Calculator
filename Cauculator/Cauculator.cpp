@@ -1,5 +1,7 @@
 ﻿#include <wx/wxprec.h>
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "ALL_IDs.h"
 #ifdef WX_PRECOMP
 #include <wx/wx.h>
@@ -13,8 +15,7 @@
 #define pointButtonsX (widthButtons + marginButtons)
 #define pointButtonsY (heightButtons + marginButtons)
 
-char m_numberTopDisplay[50] = "\n";
-char m_numberBottomDisplay[17] = "0";
+
 
 class Calculator : public wxApp {
 public:
@@ -61,10 +62,25 @@ protected:
 	wxButton* m_equalButton; // result
 	wxButton* m_comaButton;
 	wxButton* m_numbersButtons[10];
+
+	char m_numberTopDisplay[50] = "\n";
+	char m_numberBottomDisplay[17] = "0";
+	bool m_operationFlag = 0;
+	double m_memoryStore, m_memoryFirstNumber, m_memorySecondNumber, m_memoryResult;
 private:
+	double Sum (double FirstNumber, double SecondNumber);
+	double Multiply (double FirstNumber, double SecondNumber);
+	double Divide (double FirstNumber, double SecondNumber);
+
 	void OnClearDisplay (wxCommandEvent& event);
 	void OnExit (wxCommandEvent& event);
 	void OnAbout (wxCommandEvent& event);
+
+	void OnClickMemoryStore (wxCommandEvent& event);
+	void OnClickMemoryClear (wxCommandEvent& event);
+	void OnClickMemoryRecall (wxCommandEvent& event);
+	void OnClickMemoryAdd (wxCommandEvent& event);
+	void OnClickMemoryRemove (wxCommandEvent& event);
 
 	void OnClickEqual(wxCommandEvent& event);
 	void OnClickPlus(wxCommandEvent& event);
@@ -126,6 +142,7 @@ MainFrame::MainFrame () : wxFrame (NULL, wxID_ANY, "Calculator", wxDefaultPositi
 	m_panelSeparator = new wxPanel (this, wxID_ANY, wxDefaultPosition, wxSize (190, 6));
 	
 	m_panelButtons = new wxPanel (this, wxID_ANY, wxDefaultPosition, wxSize(190, 188));
+
 //---Create All Buttons
 	m_memoryClearButton = new wxButton(
 		m_panelButtons,
@@ -375,12 +392,23 @@ MainFrame::MainFrame () : wxFrame (NULL, wxID_ANY, "Calculator", wxDefaultPositi
 
 wxIMPLEMENT_APP (Calculator);
 
+double MainFrame::Sum(double FirstNumber, double SecondNumber) {
+	return FirstNumber + SecondNumber;
+}
+double MainFrame::Multiply(double FirstNumber, double SecondNumber) {
+	return FirstNumber * SecondNumber;
+}
+double MainFrame::Divide(double FirstNumber, double SecondNumber) {
+	return FirstNumber / SecondNumber;
+}
+
 void MainFrame::OnExit (wxCommandEvent& event) {
 	Close (true);
 }
 void MainFrame::OnClearDisplay (wxCommandEvent& event) {
 	strcpy(m_numberBottomDisplay, "0");
 	strcpy(m_numberTopDisplay, "\n");
+	m_operationFlag = 0;
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 	m_topDisplay->SetLabelText(m_numberTopDisplay);
 }
@@ -388,27 +416,50 @@ void MainFrame::OnAbout (wxCommandEvent& event) {
 	wxMessageBox ("This Calculator made in C/C++ by Isaac Soares", "About Calculator", wxOK | wxICON_INFORMATION);
 }
 
+void MainFrame::OnClickMemoryStore (wxCommandEvent& event) {
 
+}
+void MainFrame::OnClickMemoryClear (wxCommandEvent& event) {
 
+}
+void MainFrame::OnClickMemoryRecall (wxCommandEvent& event) {
+
+}
+void MainFrame::OnClickMemoryAdd (wxCommandEvent& event) {
+
+}
+void MainFrame::OnClickMemoryRemove(wxCommandEvent& event) {
+
+}
 
 void MainFrame::OnClickPlus (wxCommandEvent& event) {
 	//TODO:Find out how many characters fit int topDisplay
 	//TODO:Limit a topDisplay and bottomDisplay 
+	if (!m_operationFlag) {
+		strcat(m_numberTopDisplay, m_numberBottomDisplay);
+		strcat(m_numberTopDisplay, " +");
+		
+		m_memoryFirstNumber = atof(m_numberBottomDisplay);
+		m_operationFlag = 1;
 
-	if (m_numberBottomDisplay[0] != '0') {
-		if (m_numberTopDisplay == "\n") {
-			strcpy(m_numberTopDisplay, m_numberBottomDisplay);
-			strcat(m_numberTopDisplay, " +");
-		}
-		else {
-			strcat(m_numberTopDisplay, " ");
-			strcat(m_numberTopDisplay, m_numberBottomDisplay);
-			strcat(m_numberTopDisplay, " +");
-		}
+		m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
+		m_topDisplay->SetLabelText(m_numberTopDisplay);
+		strcpy(m_numberBottomDisplay, "0");
 	}
-	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
-	m_topDisplay->SetLabelText(m_numberTopDisplay);
-	strcpy(m_numberBottomDisplay, "0");
+	else if(m_numberBottomDisplay[0] != '0') {
+		strcat(m_numberTopDisplay, " ");
+		strcat(m_numberTopDisplay, m_numberBottomDisplay);
+		strcat(m_numberTopDisplay, " +");
+
+		m_memorySecondNumber = atof(m_numberBottomDisplay);
+		m_memoryResult = Sum(m_memoryFirstNumber, m_memorySecondNumber);
+		m_operationFlag = 0;
+
+		m_bottomDisplay->SetLabelText(wxString::Format("%lf", m_memoryResult));
+		m_topDisplay->SetLabelText(m_numberTopDisplay);
+		strcpy(m_numberBottomDisplay, "0");
+	}
+	
 }
 void MainFrame::OnClickMinus (wxCommandEvent& event) {
 	//TODO:Find out how many characters fit int topDisplay
