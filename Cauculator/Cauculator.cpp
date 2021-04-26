@@ -63,10 +63,10 @@ protected:
 	wxButton* m_comaButton;
 	wxButton* m_numbersButtons[10];
 
-	char m_numberTopDisplay[50] = "\n";
+	char m_numberTopDisplay[50] = "\0";
 	char m_numberBottomDisplay[17] = "0";
 	char m_lastOperation = '0';
-	bool m_repeatOperationFlag = 0;
+	bool m_repeatOperationFlag = 0, m_clikOnEqual = 0;
 	double m_memoryStore = 0, m_memoryFirstNumber = 0, m_memorySecondNumber = 0, m_memoryResult = 0;
 private:
 	double SimpleOperations(const double FirstNumber, const double SecondNumber , const char operation);
@@ -75,6 +75,9 @@ private:
 	void OnClearDisplay (wxCommandEvent& event);
 	void OnExit (wxCommandEvent& event);
 	void OnAbout (wxCommandEvent& event);
+
+	void OnClickClearEntry(wxCommandEvent& event);
+	void OnClickBackspace(wxCommandEvent& event);
 
 	void OnClickMemoryStore (wxCommandEvent& event);
 	void OnClickMemoryClear (wxCommandEvent& event);
@@ -133,7 +136,7 @@ MainFrame::MainFrame () : wxFrame (NULL, wxID_ANY, "Calculator", wxDefaultPositi
 	m_panelDisplay = new wxPanel (this, wxID_ANY, wxDefaultPosition, wxSize (190, 50), wxBORDER_SIMPLE);
 	m_panelDisplay->SetBackgroundColour(wxColor(222, 232, 244));
 
-	m_topDisplay = new wxStaticText (m_panelDisplay, wxID_ANY, m_numberTopDisplay, wxPoint(0, -10), wxSize(187, 15), wxALIGN_RIGHT);
+	m_topDisplay = new wxStaticText (m_panelDisplay, wxID_ANY, m_numberTopDisplay, wxPoint(0, 0), wxSize(187, 15), wxALIGN_RIGHT);
 	m_topDisplay->SetFont(topFont);
 
 	m_bottomDisplay = new wxStaticText (m_panelDisplay, wxID_ANY, m_numberBottomDisplay, wxPoint(0, 15), wxSize(185, 35), wxALIGN_RIGHT);
@@ -376,14 +379,13 @@ MainFrame::MainFrame () : wxFrame (NULL, wxID_ANY, "Calculator", wxDefaultPositi
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickMemoryClear, this, ID_bMemoryClear);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickMemoryRecall, this, ID_bMemoryRecall);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickMemoryStore, this, ID_bMemoryStore);
-	
-	Bind(wxEVT_BUTTON, &MainFrame::OnClearDisplay, this, ID_bClear);
-	/*
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickMemoryAdd, this, ID_bMemoryAdd);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickMemoryRemove, this, ID_bMemoryRemove);
 
-	Bind(wxEVT_BUTTON, &MainFrame::OnClickBackspace, this, ID_bBackspace);
+	Bind(wxEVT_BUTTON, &MainFrame::OnClearDisplay, this, ID_bClear);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickClearEntry, this, ID_bClearEntry);
+	Bind(wxEVT_BUTTON, &MainFrame::OnClickBackspace, this, ID_bBackspace);
+	/*
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickPlusOrMinus, this, ID_bPlusOrMinus);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickSquare, this, ID_bSquare);
 	Bind(wxEVT_BUTTON, &MainFrame::OnClickREciprocal, this, ID_bReciprocal);
@@ -406,19 +408,24 @@ double MainFrame::SimpleOperations(const double FirstNumber, const double Second
 	}
 }
 
+void MainFrame::NumberFormat(double number) {
+	strcpy(m_numberBottomDisplay, wxString::Format("%lf", number));
+}
+
 void MainFrame::OnExit (wxCommandEvent& event) {
 	Close (true);
 }
 void MainFrame::OnClearDisplay (wxCommandEvent& event) {
 	strcpy(m_numberBottomDisplay, "0");
-	strcpy(m_numberTopDisplay, "\n");
+	strcpy(m_numberTopDisplay, "\0");
 	
 	m_memoryFirstNumber = 0;
 	m_memorySecondNumber = 0;
 	m_memoryResult = 0;
 
 	m_repeatOperationFlag = 0;
-	
+	m_clikOnEqual = 0;
+
 	m_lastOperation = '0';
 	
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
@@ -428,9 +435,28 @@ void MainFrame::OnAbout (wxCommandEvent& event) {
 	wxMessageBox ("This Calculator made in C/C++ by Isaac Soares", "About Calculator", wxOK | wxICON_INFORMATION);
 }
 
-void MainFrame::NumberFormat(double number) {
-	strcpy(m_numberBottomDisplay, wxString::Format("%lf", number));
+void MainFrame::OnClickClearEntry (wxCommandEvent& event) {
+	strcpy(m_numberBottomDisplay, "0");
+	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
+void MainFrame::OnClickBackspace(wxCommandEvent& event) {
+	if (m_numberBottomDisplay[0] != '0') {
+		char backspaceCpy[17];
+		strcpy(backspaceCpy, m_numberBottomDisplay);
+		short int flag = strlen(backspaceCpy);
+
+		if (flag != 1) {
+			backspaceCpy[flag - 1] = '\0';
+			strcpy(m_numberBottomDisplay, backspaceCpy);
+		}
+		else {
+			strcpy(m_numberBottomDisplay, "0");
+		}
+		m_bottomDisplay->SetLabelText("");
+		m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
+	}
+}
+
 
 void MainFrame::OnClickMemoryStore(wxCommandEvent& event) {
 	m_memoryStore = atof(m_numberBottomDisplay);
@@ -443,15 +469,15 @@ void MainFrame::OnClickMemoryRecall (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickMemoryAdd (wxCommandEvent& event) {
-
+	double memoryAdd = atof(m_numberBottomDisplay);
+	m_memoryStore = SimpleOperations(m_memoryStore, memoryAdd, '+');
 }
 void MainFrame::OnClickMemoryRemove(wxCommandEvent& event) {
-
+	double memoryRemove = atof(m_numberBottomDisplay);
+	m_memoryStore = SimpleOperations(m_memoryStore, memoryRemove, '-');
 }
 
 void MainFrame::OnClickPlus (wxCommandEvent& event) {
-	//TODO:Find out how many characters fit int topDisplay
-	//TODO:Limit a topDisplay and bottomDisplay 
 	if (m_lastOperation == '0') {
 		strcat(m_numberTopDisplay, m_numberBottomDisplay);
 		strcat(m_numberTopDisplay, " +");
@@ -465,13 +491,30 @@ void MainFrame::OnClickPlus (wxCommandEvent& event) {
 		m_topDisplay->SetLabelText(m_numberTopDisplay);
 		strcpy(m_numberBottomDisplay, "0");
 	}
-	else if(m_numberBottomDisplay[0] != '0') {
-		strcat(m_numberTopDisplay, " ");
-		strcat(m_numberTopDisplay, m_numberBottomDisplay);
-		strcat(m_numberTopDisplay, " +");
-		
-		m_memorySecondNumber = atof(m_numberBottomDisplay);
-		m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+	else if (m_numberBottomDisplay[0] != '0') {
+
+		if (m_clikOnEqual == 0) {
+			strcat(m_numberTopDisplay, " ");
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " +");
+			
+			if (m_memoryResult == 0) {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+			}
+			else {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryResult, m_memorySecondNumber, m_lastOperation);
+			}
+		}
+		else {
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " +");
+
+			m_memoryFirstNumber = atof(m_numberBottomDisplay);
+
+			m_clikOnEqual = 0;
+		}
 		
 		m_lastOperation = '+';
 
@@ -484,9 +527,6 @@ void MainFrame::OnClickPlus (wxCommandEvent& event) {
 	
 }
 void MainFrame::OnClickMinus (wxCommandEvent& event) {
-	//TODO:Find out how many characters fit int topDisplay
-	//TODO:Limit a topDisplay and bottomDisplay 
-
 	if (m_lastOperation == '0') {
 		strcat(m_numberTopDisplay, m_numberBottomDisplay);
 		strcat(m_numberTopDisplay, " -");
@@ -501,12 +541,29 @@ void MainFrame::OnClickMinus (wxCommandEvent& event) {
 		strcpy(m_numberBottomDisplay, "0");
 	}
 	else if (m_numberBottomDisplay[0] != '0') {
-		strcat(m_numberTopDisplay, " ");
-		strcat(m_numberTopDisplay, m_numberBottomDisplay);
-		strcat(m_numberTopDisplay, " -");
 
-		m_memorySecondNumber = atof(m_numberBottomDisplay);
-		m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+		if (m_clikOnEqual == 0) {
+			strcat(m_numberTopDisplay, " ");
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " -");
+
+			if (m_memoryResult == 0) {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+			}
+			else {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryResult, m_memorySecondNumber, m_lastOperation);
+			}
+		}
+		else {
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " -");
+
+			m_memoryFirstNumber = atof(m_numberBottomDisplay);
+
+			m_clikOnEqual = 0;
+		}
 
 		m_lastOperation = '-';
 
@@ -518,9 +575,6 @@ void MainFrame::OnClickMinus (wxCommandEvent& event) {
 	}
 }
 void MainFrame::OnClickDivide (wxCommandEvent& event) {
-	//TODO:Find out how many characters fit int topDisplay
-	//TODO:Limit a topDisplay and bottomDisplay 
-
 	if (m_lastOperation == '0') {
 		strcat(m_numberTopDisplay, m_numberBottomDisplay);
 		strcat(m_numberTopDisplay, " /");
@@ -535,12 +589,29 @@ void MainFrame::OnClickDivide (wxCommandEvent& event) {
 		strcpy(m_numberBottomDisplay, "0");
 	}
 	else if (m_numberBottomDisplay[0] != '0') {
-		strcat(m_numberTopDisplay, " ");
-		strcat(m_numberTopDisplay, m_numberBottomDisplay);
-		strcat(m_numberTopDisplay, " /");
 
-		m_memorySecondNumber = atof(m_numberBottomDisplay);
-		m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+		if (m_clikOnEqual == 0) {
+			strcat(m_numberTopDisplay, " ");
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " /");
+
+			if (m_memoryResult == 0) {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+			}
+			else {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryResult, m_memorySecondNumber, m_lastOperation);
+			}
+		}
+		else {
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " /");
+
+			m_memoryFirstNumber = atof(m_numberBottomDisplay);
+
+			m_clikOnEqual = 0;
+		}
 
 		m_lastOperation = '/';
 
@@ -552,9 +623,6 @@ void MainFrame::OnClickDivide (wxCommandEvent& event) {
 	}
 }
 void MainFrame::OnClickMultiply (wxCommandEvent& event) {
-	//TODO:Find out how many characters fit int topDisplay
-	//TODO:Limit a topDisplay and bottomDisplay 
-
 	if (m_lastOperation == '0') {
 		strcat(m_numberTopDisplay, m_numberBottomDisplay);
 		strcat(m_numberTopDisplay, " *");
@@ -569,12 +637,29 @@ void MainFrame::OnClickMultiply (wxCommandEvent& event) {
 		strcpy(m_numberBottomDisplay, "0");
 	}
 	else if (m_numberBottomDisplay[0] != '0') {
-		strcat(m_numberTopDisplay, " ");
-		strcat(m_numberTopDisplay, m_numberBottomDisplay);
-		strcat(m_numberTopDisplay, " *");
 
-		m_memorySecondNumber = atof(m_numberBottomDisplay);
-		m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+		if (m_clikOnEqual == 0) {
+			strcat(m_numberTopDisplay, " ");
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " *");
+
+			if (m_memoryResult == 0) {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
+			}
+			else {
+				m_memorySecondNumber = atof(m_numberBottomDisplay);
+				m_memoryResult = SimpleOperations(m_memoryResult, m_memorySecondNumber, m_lastOperation);
+			}
+		}
+		else {
+			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			strcat(m_numberTopDisplay, " *");
+
+			m_memoryFirstNumber = atof(m_numberBottomDisplay);
+
+			m_clikOnEqual = 0;
+		}
 
 		m_lastOperation = '*';
 
@@ -600,10 +685,11 @@ void MainFrame::OnClickEqual(wxCommandEvent& event) {
 			m_repeatOperationFlag = 0;
 		}
 
-		strcpy(m_numberTopDisplay, "");
+		m_clikOnEqual = 1;
+
+		strcpy(m_numberTopDisplay, "\0");
 		m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 		m_topDisplay->SetLabelText(m_numberTopDisplay);
-		strcpy(m_numberBottomDisplay, "0");
 	} 
 	else if (m_lastOperation != '0') {
 		m_memoryResult = SimpleOperations(m_memoryFirstNumber, m_memorySecondNumber, m_lastOperation);
@@ -611,22 +697,27 @@ void MainFrame::OnClickEqual(wxCommandEvent& event) {
 		
 		m_memorySecondNumber = 0;
 		m_repeatOperationFlag = 0;
-		
+		m_clikOnEqual = 1;
+
 		NumberFormat(m_memoryResult);
 		
-		strcpy(m_numberTopDisplay, "");
+		strcpy(m_numberTopDisplay, "\0");
 		m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 		m_topDisplay->SetLabelText(m_numberTopDisplay);
-		strcpy(m_numberBottomDisplay, "0");
 	}
 
 }
 
 
 void MainFrame::OnClickComa (wxCommandEvent& event) {
-	short int flag = 0;
-	
-	for (short int i = 0; i < 18; i++) {
+	bool flag = 0;
+
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
+	for (short int i = 0; i < 17; i++) {
 		if (m_numberBottomDisplay[i] == '.') {
 			flag = 1;
 		}
@@ -637,12 +728,22 @@ void MainFrame::OnClickComa (wxCommandEvent& event) {
 	}
 }
 void MainFrame::OnClickZero (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "0");
 	}
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickOne (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "1");
 	}
@@ -652,6 +753,11 @@ void MainFrame::OnClickOne (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickTwo (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "2");
 	}
@@ -662,6 +768,11 @@ void MainFrame::OnClickTwo (wxCommandEvent& event) {
 	
 }
 void MainFrame::OnClickThree (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "3");
 	}
@@ -672,6 +783,11 @@ void MainFrame::OnClickThree (wxCommandEvent& event) {
 	
 }
 void MainFrame::OnClickFour (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "4");
 	}
@@ -681,6 +797,11 @@ void MainFrame::OnClickFour (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickFive (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "5");
 	}
@@ -690,6 +811,11 @@ void MainFrame::OnClickFive (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickSix (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "6");
 	}
@@ -699,6 +825,11 @@ void MainFrame::OnClickSix (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickSeven (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "7");
 	}
@@ -708,6 +839,11 @@ void MainFrame::OnClickSeven (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickEight (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "8");
 	}
@@ -717,6 +853,11 @@ void MainFrame::OnClickEight (wxCommandEvent& event) {
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 }
 void MainFrame::OnClickNine (wxCommandEvent& event) {
+	if (m_clikOnEqual == 1) {
+		strcpy(m_numberBottomDisplay, "0");
+		m_clikOnEqual = 0;
+	}
+
 	if (m_numberBottomDisplay[0] != '0') {
 		strcat (m_numberBottomDisplay, "9");
 	}

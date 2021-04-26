@@ -43,4 +43,9 @@
       <Filter>Arquivos de Recurso</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.md">
+      <Filter>Arquivos de Origem</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
