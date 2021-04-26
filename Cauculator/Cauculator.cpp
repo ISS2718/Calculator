@@ -141,8 +141,6 @@ MainFrame::MainFrame () : wxFrame (NULL, wxID_ANY, "Calculator", wxDefaultPositi
 		wxPoint(1 * pointButtonsX, 0 * pointButtonsY),
 		wxSize(widthButtons, heightButtons),
 		0);
-		wxString ("MS"), 
-		wxPoint (2 * pointButtonsX, 0 * pointButtonsY),
 	m_memoryStoreButton = new wxButton(
 		m_panelButtons,
 		ID_bMemoryStore,
