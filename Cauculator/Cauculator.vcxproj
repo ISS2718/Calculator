@@ -147,10 +147,12 @@
   <ItemGroup>
     <ClInclude Include="ALL_IDs.h" />
     <ClInclude Include="Cauculator.h" />
+    <ClInclude Include="MainFrame.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cauculator.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Cauculator.rc" />
