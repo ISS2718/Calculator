@@ -334,30 +334,28 @@ void MainFrame::SendToTopDisplays(const char Operator)
 			strcpy(stringForOperator, " recip.");
 			break;
 	}
-	
+
 	if (Operator != 'v' && Operator != 'r') {
 		if (m_values.empty())
 		{
-			strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			if (m_lastOpIsSqrRecp == 0)
+			{
+				strcat(m_numberTopDisplay, m_numberBottomDisplay);
+			}
 			strcat(m_numberTopDisplay, stringForOperator);
 		}
 		else
 		{
-			if (m_operators.top() != 'v' && m_operators.top() != 'r')
+			strcat(m_numberTopDisplay, " ");
+			if (m_lastOpIsSqrRecp == 0)
 			{
-				strcat(m_numberTopDisplay, " ");
 				strcat(m_numberTopDisplay, m_numberBottomDisplay);
-				strcat(m_numberTopDisplay, stringForOperator);
 			}
-			else 
-			{
-				strcat(m_numberTopDisplay, stringForOperator);
-				m_operators.push(Operator);
-				m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
-				m_topDisplay->SetLabelText(m_numberTopDisplay);
-			}
-			
+			strcat(m_numberTopDisplay, stringForOperator);
 		}
+
+		m_values.push(atof(m_numberBottomDisplay));
+		m_operators.push(Operator);
 	}
 	else if (m_values.empty()) 
 	{
@@ -371,10 +369,43 @@ void MainFrame::SendToTopDisplays(const char Operator)
 		strcat(m_numberTopDisplay, m_numberBottomDisplay);
 		
 	}
-	
+	// Calculating Square and Reciprocal
+	if (Operator == 'v')
+	{
+		double Numerator = atof(m_numberBottomDisplay);
 
-	m_values.push(atof(m_numberBottomDisplay));
-	m_operators.push(Operator);
+		if (Numerator >= 0) {
+			m_sum.push(Operations(Numerator, NULL, 'v'));
+			m_operators.push ('v');
+			m_lastOpIsSqrRecp = 1;
+		}
+		else
+		{
+			strcpy(m_numberBottomDisplay, "Complex Number");
+			m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
+			strcpy(m_numberBottomDisplay, "0");
+			strcpy(m_numberTopDisplay, " ");
+			m_topDisplay->SetLabelText(m_numberTopDisplay);
+			return;
+		}
+	}
+	else if (Operator == 'r')
+	{
+		double Denominator = atof(m_numberBottomDisplay);
+		if (Denominator == 0) {
+			strcpy(m_numberBottomDisplay, "Divide by 0");
+			m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
+			strcpy(m_numberBottomDisplay, "0");
+			strcpy(m_numberTopDisplay, " ");
+			m_topDisplay->SetLabelText(m_numberTopDisplay);
+			return;
+		}
+		else {
+			m_sum.push(Operations(NULL, Denominator, Operator));
+			m_operators.push('r');
+			m_lastOpIsSqrRecp = 1;
+		}
+	}
 
 	strcpy(m_numberBottomDisplay, "0");
 	m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
@@ -422,9 +453,8 @@ void MainFrame::OnClearDisplay(wxCommandEvent& event)
 	strcpy(m_numberTopDisplay, "\0");
 
 	m_equalClicked = 0;
-	m_lastOperator = '0';
-	m_lastValue = 0;
 	m_result = 0;
+	m_lastOpIsSqrRecp = 0;
 
 	while (! m_values.empty()) 
 	{
@@ -534,21 +564,22 @@ void MainFrame::OnClickReciprocal (wxCommandEvent& event)
 	SendToTopDisplays('r');
 }
 
-void MainFrame::OnClickEqual (wxCommandEvent& event) 
+void MainFrame::OnClickEqual(wxCommandEvent& event)
 {
-	if (m_equalClicked == 0 && !m_operators.empty())
-	{
-		double Denominator = 0, Numerator = 0;
-		char Operator = '0';
 
-		m_lastOperator = m_operators.top();
-		if (m_lastOperator != 'v' && m_lastOperator != 'r')
+	double Denominator = 0, Numerator = 0;
+	char Operator = '0', lastOpOnLoop  = '0';
+	char m_lastOperator = m_operators.top();
+		if (m_operators.top() != 'v' || m_operators.top() != 'r')
 		{
 			m_values.push(atof(m_numberBottomDisplay));
 		}
-		m_lastValue = m_values.top();
+		else 
+		{
+			m_operators.pop();
+		}
 
-		while (! m_operators.empty())
+		while (!m_operators.empty())
 		{
 			Operator = m_operators.top();
 			if (Operator == '+')
@@ -563,49 +594,17 @@ void MainFrame::OnClickEqual (wxCommandEvent& event)
 				Denominator *= -1;
 				m_sum.push(Denominator);
 			}
-			else if (Operator == 'v')
-			{
-				Numerator = m_values.top();
-				m_values.pop();
-				if (Numerator >= 0) {
-					m_sum.push(Operations(Numerator, NULL, 'v'));
-				}
-				else 
-				{
-					strcpy(m_numberBottomDisplay, "Complex Number");
-					m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
-					strcpy(m_numberBottomDisplay, "0");
-					strcpy(m_numberTopDisplay, " ");
-					m_topDisplay->SetLabelText(m_numberTopDisplay);
-					return;
-				}
-			}
-			else if (Operator == 'r')
-			{
-				Denominator = m_values.top();
-				m_values.pop();
-				if (Denominator == 0) {
-					strcpy(m_numberBottomDisplay, "Divide by 0");
-					m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
-					strcpy(m_numberBottomDisplay, "0");
-					strcpy(m_numberTopDisplay, " ");
-					m_topDisplay->SetLabelText(m_numberTopDisplay);
-					return;
-				}
-				else {
-					m_sum.push(Operations(NULL, Denominator, Operator));
-				}
-			}
-			else if (Operator == '*' || Operator == '/' || m_lastOperator == '%')
+			else if (Operator == '*' || Operator == '/' || Operator == '%')
 			{
 				if (m_sum.empty() || m_lastOperator == '+' || m_lastOperator == '-' 
-					|| m_lastOperator == 'v')
+					&& lastOpOnLoop != '+' && lastOpOnLoop != '-')
 				{
 					Denominator = m_values.top();
 					m_values.pop();
 					Numerator = m_values.top();
 					m_values.pop();
-					if (Denominator == 0 && Operator != '*') {
+					if (Denominator == 0 && Operator != '*')
+					{
 						strcpy(m_numberBottomDisplay, "Divide by 0");
 						m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 						strcpy(m_numberBottomDisplay, "0");
@@ -613,17 +612,31 @@ void MainFrame::OnClickEqual (wxCommandEvent& event)
 						m_topDisplay->SetLabelText(m_numberTopDisplay);
 						return;
 					}
-					else {
+					else
+					{
 						m_sum.push(Operations(Numerator, Denominator, Operator));
 					}
 				}
 				else
 				{
-					Denominator = m_sum.top();
-					m_sum.pop();
-					Numerator = m_values.top();
-					m_values.pop();
-					if (Denominator == 0 && Operator == '/') {
+					if (m_lastOpIsSqrRecp == 0)
+					{
+						Denominator = m_values.top();
+						m_values.pop();
+						Numerator = m_sum.top();
+						m_sum.pop();
+						m_lastOpIsSqrRecp = 0;
+					}
+					else
+					{
+						Denominator = m_sum.top();
+						m_sum.pop();
+						Numerator = m_values.top();
+						m_values.pop();
+					}
+
+					if (Denominator == 0 && Operator != '*')
+					{
 						strcpy(m_numberBottomDisplay, "Divide by 0");
 						m_bottomDisplay->SetLabelText(m_numberBottomDisplay);
 						strcpy(m_numberBottomDisplay, "0");
@@ -631,11 +644,13 @@ void MainFrame::OnClickEqual (wxCommandEvent& event)
 						m_topDisplay->SetLabelText(m_numberTopDisplay);
 						return;
 					}
-					else {
+					else
+					{
 						m_sum.push(Operations(Numerator, Denominator, Operator));
 					}
 				}
 			}
+			lastOpOnLoop = Operator;
 			m_operators.pop();
 		}
 
@@ -651,15 +666,11 @@ void MainFrame::OnClickEqual (wxCommandEvent& event)
 			m_sum.pop();
 			m_result = Operations(m_result, Denominator, '+');
 		}
+
 		ShowResult(m_result);
+		m_result = 0;
 		m_equalClicked = 1;
-	}
-	else if (m_lastOperator != '0')
-	{
-		m_result = Operations(m_result, m_lastValue, m_lastOperator);
-		ShowResult(m_result);
-		m_equalClicked = 1;
-	}
+	
 }
 
 void MainFrame::OnClickComa(wxCommandEvent& event) 

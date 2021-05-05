@@ -3,14 +3,7 @@
 #ifndef MainFrame
 #define Mainframe
 
-#include <wx/wxprec.h>
-#include <stdlib.h>
-#include <stack>
-#include <math.h>
-#include "ALL_IDs.h"
-#ifdef WX_PRECOMP
-#include <wx/wx.h>
-#endif
+#include "framework.h"
 
 using namespace std;
 
@@ -56,9 +49,9 @@ protected:
 
 	char m_numberTopDisplay[50] = "\0";
 	char m_numberBottomDisplay[17] = "0";
-	char m_lastOperator = '0';
-	double m_lastValue = 0, m_result = 0;
+	double m_result = 0;
 	bool m_equalClicked = 0;
+	bool m_lastOpIsSqrRecp = 0;
 	stack<double> m_values;
 	stack<double> m_sum;
 	stack<char> m_operators;

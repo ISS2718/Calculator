@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="ALL_IDs.h" />
     <ClInclude Include="Cauculator.h" />
+    <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>

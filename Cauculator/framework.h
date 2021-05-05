@@ -13,3 +13,11 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+
+#include <wx/wxprec.h>
+#include <stack>
+#include <math.h>
+#include "ALL_IDs.h"
+#ifdef WX_PRECOMP
+#include <wx/wx.h>
+#endif
